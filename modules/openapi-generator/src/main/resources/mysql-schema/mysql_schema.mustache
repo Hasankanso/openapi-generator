@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS {{#defaultDatabaseName}}`{{{.}}}`.{{/defaultDatabaseN
   {{#vendorExtensions}}
   {{#x-mysql-schema}}
   {{#columnDefinition}}
-  `{{colName}}` {{colDataType}}{{#colDataTypeArguments}}{{#-first}}({{/-first}}{{#isString}}'{{/isString}}{{argumentValue}}{{#isString}}'{{/isString}}{{^-last}}, {{/-last}}{{#-last}}){{/-last}}{{/colDataTypeArguments}}{{#colUnsigned}} UNSIGNED{{/colUnsigned}}{{#colNotNull}} NOT NULL{{/colNotNull}}{{#colDefault}} DEFAULT {{#isString}}'{{defaultValue}}'{{/isString}}{{^isString}}{{defaultValue}}{{/isString}}{{/colDefault}}{{#colComment}} COMMENT '{{.}}'{{/colComment}}{{^-last}},{{/-last}}
+  `{{colName}}` {{colDataType}}{{#colDataTypeArguments}}{{#-first}}({{/-first}}{{#isString}}'{{/isString}}{{argumentValue}}{{#isString}}'{{/isString}}{{^-last}}, {{/-last}}{{#-last}}){{/-last}}{{/colDataTypeArguments}}{{#colUnsigned}} UNSIGNED{{/colUnsigned}}{{#colNotNull}} NOT NULL{{/colNotNull}}{{#colPrimaryKey}} PRIMARY KEY {{/colPrimaryKey}}{{#colDefault}} DEFAULT {{#isString}}'{{defaultValue}}'{{/isString}}{{^isString}}{{defaultValue}}{{/isString}}{{/colDefault}}{{#colForeignTable}}{{#colForeignCol}} FOREIGN KEY REFERENCES {{colForeignTable}}({{colForeignCol}}){{/colForeignCol}}{{/colForeignTable}}{{#colComment}} COMMENT '{{.}}'{{/colComment}}{{^-last}},{{/-last}}
   {{/columnDefinition}}
   {{/x-mysql-schema}}
   {{/vendorExtensions}}

@@ -42,7 +42,10 @@ public class MysqlSchemaCodegen extends DefaultCodegen implements CodegenConfig 
     public static final String NAMED_PARAMETERS_ENABLED = "namedParametersEnabled";
     public static final Integer ENUM_MAX_ELEMENTS = 65535;
     public static final Integer IDENTIFIER_MAX_LENGTH = 64;
-
+    public static final String COL_PRIMARY_KEY = "colPrimaryKey";
+    //key is the class name, and values are all primary keys 
+    public Map<String, List<CodegenProperty>> primaryKeys = new HashMap<>();
+    
     protected Vector<String> mysqlNumericTypes = new Vector<>(Arrays.asList(
             "BIGINT", "BIT", "BOOL", "BOOLEAN", "DEC", "DECIMAL", "DOUBLE", "DOUBLE PRECISION", "FIXED", "FLOAT", "INT", "INTEGER", "MEDIUMINT", "NUMERIC", "REAL", "SMALLINT", "TINYINT"
     ));
@@ -253,6 +256,34 @@ public class MysqlSchemaCodegen extends DefaultCodegen implements CodegenConfig 
         supportingFiles.add(new SupportingFile("mysql_schema.mustache", "", "mysql_schema.sql"));
     }
 
+    boolean isBoolAndTrue(Object obj){
+    	return obj instanceof Boolean && (Boolean) obj == true;
+    }
+    
+    List<CodegenProperty> extractPrimaryKeysFrom(CodegenModel model){
+        
+    	List<CodegenProperty> primaryKeysList = new ArrayList<CodegenProperty>(); 
+        
+        //get all properties
+    	List<CodegenProperty> properties = model.getAllVars();
+    	
+        for(int i=0; i < properties.size(); i++) {
+        	CodegenProperty property = properties.get(i);
+        	Map<String, Object> extensions = property.getVendorExtensions();
+        	
+        	//check if this particular property has primaryKey attribute
+        	if (extensions.containsKey(COL_PRIMARY_KEY)) {
+        		Object primaryKeyExtension = extensions.get(COL_PRIMARY_KEY);
+        		if(isBoolAndTrue(primaryKeyExtension)) {
+        			
+        			//add the property to the primary keys list
+        			primaryKeysList.add(property);
+        		}
+        	}
+        }
+        return primaryKeysList;
+    }
+    
     @Override
     public ModelsMap postProcessModels(ModelsMap objs) {
         objs = super.postProcessModels(objs);
@@ -280,12 +311,19 @@ public class MysqlSchemaCodegen extends DefaultCodegen implements CodegenConfig 
                 mysqlSchema.put("tableDefinition", tableDefinition);
                 tableDefinition.put("tblName", tableName);
                 tableDefinition.put("tblComment", modelDescription);
+                
             }
+            
+            //populate the primary keys map to use later in postProcessProperty.
+            primaryKeys.put(modelName, extractPrimaryKeysFrom(mo.getModel()));
+            
+
         }
 
         return objs;
     }
-
+    
+    
     @Override
     public void postProcessModelProperty(CodegenModel model, CodegenProperty property) {
         switch (property.getDataType().toUpperCase(Locale.ROOT)) {
@@ -778,8 +816,33 @@ public class MysqlSchemaCodegen extends DefaultCodegen implements CodegenConfig 
         vendorExtensions.put(VENDOR_EXTENSION_MYSQL_SCHEMA, mysqlSchema);
         mysqlSchema.put("columnDefinition", columnDefinition);
         columnDefinition.put("colName", colName);
-        columnDefinition.put("colDataType", "TEXT");
-
+        String dataType = "TEXT";
+        
+        // try to find an object with property data type.
+        List<CodegenProperty> keysList = primaryKeys.get(property.getDataType());
+        if(keysList != null && keysList.size() > 0) {	
+        	// if found assign first primary key type as type of this property.
+        	// for enhancement: add an extra vendor extension where you specify exactly the primary key column name.(not necess. the first one)
+        	CodegenProperty primaryKeyProperty = keysList.get(0);
+        	dataType = primaryKeyProperty.getDataType();
+        	Object keyColName = primaryKeyProperty.getVendorExtensions().get("colName");
+        	
+        	if(keyColName == null) {
+        		keyColName = this.toColumnName(primaryKeyProperty.getName());
+        	}
+        	if(keyColName !=null && keyColName instanceof String) {
+        		String colForeignCol = (String) keyColName;
+        		
+        		//normally we should try to get the colName from vendorExtensions, but at this point
+        		//we have no access to the models list anymore, to fix that populate a list/map of models and use it here.
+        		String colForeignTable = this.toTableName(property.getDataType());
+                columnDefinition.put("colForeignCol", colForeignCol);
+                columnDefinition.put("colForeignTable", colForeignTable);
+        	}
+        }
+        
+        columnDefinition.put("colDataType", dataType);
+        
         if (Boolean.TRUE.equals(required)) {
             columnDefinition.put("colNotNull", true);
         } else {
