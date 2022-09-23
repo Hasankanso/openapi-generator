@@ -1305,9 +1305,13 @@ components:
         id:
           type: integer
           format: int64
+          x-mysql-schema:
+            columnDefinition:
+              colDataType: BIGINT
+              colPrimaryKey: true
+              colName: id
         petId:
-          type: integer
-          format: int64
+          $ref: '#/components/schemas/Pet'
         quantity:
           type: integer
           format: int32
@@ -1334,6 +1338,11 @@ components:
         id:
           type: integer
           format: int64
+          x-mysql-schema:
+            columnDefinition:
+              colDataType: BIGINT
+              colPrimaryKey: true
+              colName: id
         name:
           type: string
           default: default-name
@@ -1383,6 +1392,11 @@ components:
         id:
           type: integer
           format: int64
+          x-mysql-schema:
+            columnDefinition:
+              colDataType: BIGINT
+              colPrimaryKey: true
+              colName: id
           x-is-unique: true
         category:
           $ref: '#/components/schemas/Category'

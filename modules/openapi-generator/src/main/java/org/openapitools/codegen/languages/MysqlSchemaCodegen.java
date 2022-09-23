@@ -270,15 +270,21 @@ public class MysqlSchemaCodegen extends DefaultCodegen implements CodegenConfig 
         for(int i=0; i < properties.size(); i++) {
         	CodegenProperty property = properties.get(i);
         	Map<String, Object> extensions = property.getVendorExtensions();
-        	
+        	Map<String, Object> mysqlSchema = (Map<String, Object>) extensions.get(VENDOR_EXTENSION_MYSQL_SCHEMA);
+        	if(mysqlSchema !=null) {
+        	Map<String, Object> definitions = (Map<String, Object>) mysqlSchema.get("columnDefinition");
+
+        	if(definitions !=null) {
         	//check if this particular property has primaryKey attribute
-        	if (extensions.containsKey(COL_PRIMARY_KEY)) {
-        		Object primaryKeyExtension = extensions.get(COL_PRIMARY_KEY);
+        	if (definitions.containsKey(COL_PRIMARY_KEY)) {
+        		Object primaryKeyExtension = definitions.get(COL_PRIMARY_KEY);
         		if(isBoolAndTrue(primaryKeyExtension)) {
         			
         			//add the property to the primary keys list
         			primaryKeysList.add(property);
         		}
+        	}
+        	}
         	}
         }
         return primaryKeysList;

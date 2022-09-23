@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `Cat_allOf` (
 --
 
 CREATE TABLE IF NOT EXISTS `Category` (
-  `id` BIGINT DEFAULT NULL,
+  `id` BIGINT PRIMARY KEY ,
   `name` TEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -344,8 +344,8 @@ CREATE TABLE IF NOT EXISTS `ObjectWithDeprecatedFields` (
 --
 
 CREATE TABLE IF NOT EXISTS `Order` (
-  `id` BIGINT DEFAULT NULL,
-  `petId` BIGINT DEFAULT NULL,
+  `id` BIGINT PRIMARY KEY ,
+  `petId` TEXT DEFAULT NULL,
   `quantity` INT DEFAULT NULL,
   `shipDate` DATETIME DEFAULT NULL,
   `status` ENUM('placed', 'approved', 'delivered') DEFAULT NULL COMMENT 'Order Status',
@@ -375,8 +375,8 @@ CREATE TABLE IF NOT EXISTS `OuterObjectWithEnumProperty` (
 --
 
 CREATE TABLE IF NOT EXISTS `Pet` (
-  `id` BIGINT DEFAULT NULL,
-  `category` TEXT DEFAULT NULL,
+  `id` BIGINT PRIMARY KEY ,
+  `category` BIGINT DEFAULT NULL FOREIGN KEY REFERENCES Category(id),
   `name` TEXT NOT NULL,
   `photoUrls` JSON NOT NULL,
   `tags` JSON DEFAULT NULL,
